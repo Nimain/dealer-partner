@@ -16,6 +16,8 @@ import {
   Building2,
   MapPin,
   Check,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 
 interface BookCallModalProps {
@@ -29,11 +31,14 @@ export default function BookCallModal({
   onClose,
   defaultRole = "dealer",
 }: BookCallModalProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [role, setRole] = useState<"dealer" | "owner">(defaultRole);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const [brochureLang, setBrochureLang] = useState<"es" | "en">(
+    language === "en" ? "en" : "es"
+  );
   const [applicationId, setApplicationId] = useState("");
   const [cfStatus, setCfStatus] = useState<"idle" | "verifying" | "verified">("idle");
   const [cfError, setCfError] = useState(false);
@@ -49,12 +54,16 @@ export default function BookCallModal({
 
   if (!isOpen) return null;
 
-  const BROCHURE_DOWNLOAD_URL = "/api/download-brochure";
+  const S3_SPANISH_BROCHURE_URL =
+    "https://holadashboard.s3.us-west-2.amazonaws.com/holatractor-dealer-brochure.pdf";
 
-  const handleDownloadBrochure = () => {
+  const handleDownloadBrochure = (lang: "es" | "en") => {
     const link = document.createElement("a");
-    link.href = BROCHURE_DOWNLOAD_URL;
-    link.download = "holatractor-dealer-brochure.pdf";
+    link.href = `/api/download-brochure?lang=${lang}`;
+    link.download =
+      lang === "en"
+        ? "holatractor-dealer-brochure-en.pdf"
+        : "holatractor-dealer-brochure-es.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -110,17 +119,11 @@ export default function BookCallModal({
       setIsSubmitting(false);
       setSubmitted(true);
 
-      // Trigger automatic direct system download of the official brochure
+      // Trigger automatic direct system download of the selected brochure
       try {
-        const link = document.createElement("a");
-        link.href = BROCHURE_DOWNLOAD_URL;
-        link.download = "holatractor-dealer-brochure.pdf";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setDownloaded(true);
+        handleDownloadBrochure(brochureLang);
       } catch {
-        // Fallback to manual button if popup blocker intervenes
+        // Fallback to manual buttons if popup blocker intervenes
       }
     }
   };
@@ -139,12 +142,12 @@ export default function BookCallModal({
         </button>
 
         {submitted ? (
-          <div className="text-center py-6 animate-in fade-in zoom-in-95 duration-300">
+          <div className="text-center py-5 animate-in fade-in zoom-in-95 duration-300">
             {/* Success Ring */}
-            <div className="relative w-20 h-20 mx-auto mb-5 flex items-center justify-center">
+            <div className="relative w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <div className="absolute inset-0 rounded-full bg-emerald-500/15 animate-ping" />
-              <div className="relative w-16 h-16 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25">
-                <CheckCircle2 className="w-8 h-8" />
+              <div className="relative w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
             </div>
 
@@ -153,50 +156,87 @@ export default function BookCallModal({
               <span>{t.modal.verifiedRef} {applicationId}</span>
             </div>
 
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1.5">
               {role === "dealer"
                 ? t.modal.successDealerTitle
                 : t.modal.successOwnerTitle}
             </h3>
 
-            <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto mb-6 leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto mb-4 leading-relaxed">
               {role === "dealer"
                 ? t.modal.successDealerMessage(formData.name, formData.dealershipName)
                 : t.modal.successOwnerMessage}
             </p>
 
             {/* Application Summary Box */}
-            <div className="p-4 rounded-2xl bg-white/60 border border-gray-200/80 mb-6 text-xs text-left space-y-2 backdrop-blur-sm">
+            <div className="p-3.5 rounded-2xl bg-white/60 border border-gray-200/80 mb-5 text-xs text-left space-y-1.5 backdrop-blur-sm">
               <div className="flex items-center justify-between text-gray-600">
                 <span className="font-medium">{t.modal.locationLabel}</span>
                 <span className="text-gray-900 font-bold">{formData.district || "Provided Location"}</span>
               </div>
+              <div className="flex items-center justify-between text-gray-600">
+                <span className="font-medium">Edición Descargada:</span>
+                <span className="text-gray-900 font-bold">
+                  {brochureLang === "es" ? "🇪🇸 Español (12 Páginas)" : "🇺🇸 English (12 Pages)"}
+                </span>
+              </div>
             </div>
 
-            {/* Action Buttons: Instant Download & WhatsApp Direct */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
-              <a
-                href={BROCHURE_DOWNLOAD_URL}
-                download="holatractor-dealer-brochure.pdf"
-                onClick={() => setDownloaded(true)}
-                className="w-full sm:w-auto px-5 py-3 rounded-full bg-gray-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.02]"
-              >
-                <Download className="w-4 h-4 text-red-400" />
-                <span>
-                  {downloaded ? t.modal.downloadedBtn : t.modal.downloadBrochureBtn}
+            {/* Action Buttons: Dual Language Download & WhatsApp Direct */}
+            <div className="flex flex-col gap-3 justify-center mb-4">
+              <div className="text-left">
+                <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                  {t.modal.chooseBrochureLang}
                 </span>
-              </a>
+              </div>
 
+              {/* Dual Download Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+                {/* Spanish Version Download Button */}
+                <button
+                  type="button"
+                  onClick={() => handleDownloadBrochure("es")}
+                  className="w-full px-4 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.02]"
+                >
+                  <Download className="w-4 h-4 text-white" />
+                  <span className="truncate">🇪🇸 {t.modal.downloadSpanishBrochureBtn}</span>
+                </button>
+
+                {/* English Version Download Button */}
+                <button
+                  type="button"
+                  onClick={() => handleDownloadBrochure("en")}
+                  className="w-full px-4 py-3 rounded-2xl bg-gray-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.02]"
+                >
+                  <Download className="w-4 h-4 text-amber-300" />
+                  <span className="truncate">🇺🇸 {t.modal.downloadEnglishBrochureBtn}</span>
+                </button>
+              </div>
+
+              {/* S3 Direct Link Option */}
+              <div className="text-center py-1">
+                <a
+                  href={S3_SPANISH_BROCHURE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-red-600 font-medium transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>{t.modal.s3DirectLink} (holatractor-dealer-brochure.pdf)</span>
+                </a>
+              </div>
+
+              {/* WhatsApp Regional Director */}
               <a
                 href={`https://wa.me/59177613811?text=${encodeURIComponent(
                   `Hi Holatractor Team, I just submitted an application to join the Dealer Network for ${formData.dealershipName || "my dealership"} in ${formData.district || "my region"}. Reference ID: ${applicationId}`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-600/20 hover:scale-[1.02]"
+                className="w-full px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-600/20 hover:scale-[1.02]"
               >
                 <MessageSquare className="w-4 h-4" />
-                <span>{t.modal.whatsappBtn}</span>
+                <span>{t.modal.whatsappBtn} (+591 77613811)</span>
               </a>
             </div>
 
@@ -205,7 +245,7 @@ export default function BookCallModal({
                 setSubmitted(false);
                 onClose();
               }}
-              className="text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer mt-2 font-medium"
+              className="text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer mt-1 font-medium"
             >
               {t.modal.doneBtn}
             </button>
@@ -213,25 +253,25 @@ export default function BookCallModal({
         ) : (
           <div>
             {/* Header */}
-            <div className="mb-5">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200/80 text-[11px] font-semibold text-red-600 mb-2.5">
+            <div className="mb-4">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200/80 text-[11px] font-semibold text-red-600 mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-red-600" />
                 <span>{t.modal.badge}</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
                 {role === "dealer" ? t.modal.dealerTitle : t.modal.ownerTitle}
               </h3>
-              <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
+              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
                 {t.modal.subtitle}
               </p>
             </div>
 
             {/* Role Switcher */}
-            <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-black/5 border border-black/5 mb-5 text-xs font-semibold">
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-black/5 border border-black/5 mb-4 text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setRole("dealer")}
-                className={`py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                className={`py-2 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   role === "dealer"
                     ? "bg-red-600 text-white shadow-md shadow-red-600/25 font-bold"
                     : "text-gray-600 hover:text-gray-900"
@@ -243,7 +283,7 @@ export default function BookCallModal({
               <button
                 type="button"
                 onClick={() => setRole("owner")}
-                className={`py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                className={`py-2 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   role === "owner"
                     ? "bg-red-600 text-white shadow-md shadow-red-600/25 font-bold"
                     : "text-gray-600 hover:text-gray-900"
@@ -255,7 +295,7 @@ export default function BookCallModal({
             </div>
 
             {/* Interactive Form */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 text-xs">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3 text-xs">
               {/* Row 1: Dealership Name & District */}
               {role === "dealer" ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -368,10 +408,47 @@ export default function BookCallModal({
                 </div>
               )}
 
+              {/* Brochure Language Preference Selection */}
+              <div className="p-3 rounded-2xl bg-black/[0.03] border border-black/5 text-left">
+                <label className="block text-gray-700 font-semibold mb-2 text-[11px] flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-red-500" />
+                    <span>{t.modal.chooseBrochureLang}</span>
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-normal">PDF 12 Páginas / Pages</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBrochureLang("es")}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      brochureLang === "es"
+                        ? "bg-red-600 text-white shadow-xs font-bold"
+                        : "bg-white/80 border border-gray-200/80 text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <span>🇪🇸</span>
+                    <span>{t.modal.spanishEdition}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBrochureLang("en")}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      brochureLang === "en"
+                        ? "bg-gray-900 text-white shadow-xs font-bold"
+                        : "bg-white/80 border border-gray-200/80 text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <span>🇺🇸</span>
+                    <span>{t.modal.englishEdition}</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Cloudflare Turnstile Human Verification Box */}
               <div
                 onClick={handleVerifyCloudflare}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer select-none flex items-center justify-between mt-1 backdrop-blur-sm shadow-xs ${
+                className={`p-3 rounded-2xl border transition-all cursor-pointer select-none flex items-center justify-between backdrop-blur-sm shadow-xs ${
                   cfStatus === "verified"
                     ? "bg-emerald-50/90 border-emerald-300 text-emerald-900"
                     : cfError
@@ -435,7 +512,7 @@ export default function BookCallModal({
               <button
                 type="submit"
                 disabled={isSubmitting || cfStatus !== "verified"}
-                className={`w-full py-3.5 rounded-full font-bold transition-all shadow-md flex items-center justify-center gap-2 mt-1 text-xs ${
+                className={`w-full py-3.5 rounded-full font-bold transition-all shadow-md flex items-center justify-center gap-2 mt-0.5 text-xs ${
                   cfStatus !== "verified"
                     ? "bg-gray-200 border border-gray-300/80 text-gray-600 cursor-not-allowed hover:bg-gray-200"
                     : "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white cursor-pointer shadow-red-600/30 hover:scale-[1.01]"

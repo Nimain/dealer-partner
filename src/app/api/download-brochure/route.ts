@@ -2,51 +2,81 @@ import { NextRequest, NextResponse, connection } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const S3_BROCHURE_URL =
+const S3_SPANISH_BROCHURE_URL =
   "https://holadashboard.s3.us-west-2.amazonaws.com/holatractor-dealer-brochure.pdf";
 
 export async function GET(request: NextRequest) {
   await connection();
 
-  try {
-    // 1. Fetch official brochure from S3
-    const s3Res = await fetch(S3_BROCHURE_URL);
+  const { searchParams } = new URL(request.url);
+  const lang = (searchParams.get("lang") || "es").toLowerCase();
+  const isEnglish = lang === "en" || lang === "english";
 
+  const filename = isEnglish
+    ? "holatractor-dealer-brochure-en.pdf"
+    : "holatractor-dealer-brochure-es.pdf";
+
+  // 1. If English requested, serve local English edition
+  if (isEnglish) {
+    const enLocalPath = path.join(
+      process.cwd(),
+      "public",
+      "holatractor-dealer-brochure-en.pdf"
+    );
+    if (fs.existsSync(enLocalPath)) {
+      const fileBuffer = fs.readFileSync(enLocalPath);
+      return new NextResponse(fileBuffer, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          "Cache-Control": "public, max-age=3600",
+        },
+      });
+    }
+  }
+
+  // 2. For Spanish edition, attempt S3 fetch first
+  try {
+    const s3Res = await fetch(S3_SPANISH_BROCHURE_URL);
     if (s3Res.ok) {
       const pdfBuffer = await s3Res.arrayBuffer();
       return new NextResponse(pdfBuffer, {
         status: 200,
         headers: {
           "Content-Type": "application/pdf",
-          "Content-Disposition": 'attachment; filename="holatractor-dealer-brochure.pdf"',
+          "Content-Disposition": `attachment; filename="${filename}"`,
           "Cache-Control": "public, max-age=3600",
         },
       });
     }
   } catch (err) {
-    console.warn("Could not fetch brochure from S3, using local fallback:", err);
+    console.warn("Could not fetch Spanish brochure from S3, falling back to local file:", err);
   }
 
-  // 2. Reliable fallback to local public directory copy
-  try {
-    const localFilePath = path.join(
-      process.cwd(),
-      "public",
-      "holatractor-dealer-brochure.pdf"
-    );
-    if (fs.existsSync(localFilePath)) {
-      const fileBuffer = fs.readFileSync(localFilePath);
-      return new NextResponse(fileBuffer, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": 'attachment; filename="holatractor-dealer-brochure.pdf"',
-          "Cache-Control": "public, max-age=3600",
-        },
-      });
-    }
-  } catch (localErr) {
-    console.error("Local brochure file fallback failed:", localErr);
+  // 3. Fallback to local Spanish brochure file
+  const esLocalPath = path.join(
+    process.cwd(),
+    "public",
+    "holatractor-dealer-brochure-es.pdf"
+  );
+  const fallbackPath = path.join(
+    process.cwd(),
+    "public",
+    "holatractor-dealer-brochure.pdf"
+  );
+
+  const localFileToServe = fs.existsSync(esLocalPath) ? esLocalPath : fallbackPath;
+  if (fs.existsSync(localFileToServe)) {
+    const fileBuffer = fs.readFileSync(localFileToServe);
+    return new NextResponse(fileBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Cache-Control": "public, max-age=3600",
+      },
+    });
   }
 
   return NextResponse.json({ error: "Brochure file unavailable" }, { status: 404 });

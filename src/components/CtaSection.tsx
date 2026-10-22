@@ -9,7 +9,7 @@ interface CtaSectionProps {
 }
 
 export default function CtaSection({ onOpenBookCall }: CtaSectionProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
     const target = e.currentTarget;
@@ -48,8 +48,8 @@ export default function CtaSection({ onOpenBookCall }: CtaSectionProps) {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
               <a
-                href="/api/download-brochure"
-                download="holatractor-dealer-brochure.pdf"
+                href={`/api/download-brochure?lang=${language}`}
+                download={`holatractor-dealer-brochure-${language}.pdf`}
                 onMouseMove={handleMouseMove}
                 className="explode-btn relative px-7 py-3.5 rounded-full font-bold text-xs bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg hover:shadow-orange-500/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto text-center"
               >

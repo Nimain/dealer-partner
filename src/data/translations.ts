@@ -173,6 +173,12 @@ export interface Translations {
     successOwnerMessage: string;
     verifiedRef: string;
     downloadBrochureBtn: string;
+    downloadSpanishBrochureBtn: string;
+    downloadEnglishBrochureBtn: string;
+    chooseBrochureLang: string;
+    spanishEdition: string;
+    englishEdition: string;
+    s3DirectLink: string;
     downloadedBtn: string;
     whatsappBtn: string;
     doneBtn: string;
@@ -619,6 +625,12 @@ export const translations: Record<Language, Translations> = {
         "¡Muchas gracias! Nuestro especialista en telemetría agrícola se comunicará a la brevedad para coordinar la demostración en campo.",
       verifiedRef: "Solicitud Verificada • Referencia",
       downloadBrochureBtn: "Descargar Folleto Comercial (PDF)",
+      downloadSpanishBrochureBtn: "Descargar Folleto en Español (PDF)",
+      downloadEnglishBrochureBtn: "Download Brochure in English (PDF)",
+      chooseBrochureLang: "Idioma del folleto:",
+      spanishEdition: "Edición Español",
+      englishEdition: "English Edition",
+      s3DirectLink: "Enlace directo S3 (Nube)",
       downloadedBtn: "Folleto Descargado ✓",
       whatsappBtn: "Chatear con Director Regional",
       doneBtn: "Finalizar y Volver a la Página",
@@ -1065,6 +1077,12 @@ export const translations: Record<Language, Translations> = {
         "Thank you! Our agricultural telematics specialist will confirm your field consultation shortly.",
       verifiedRef: "Application Verified • Reference",
       downloadBrochureBtn: "Download Dealer Brochure (PDF)",
+      downloadSpanishBrochureBtn: "Descargar Folleto en Español (PDF)",
+      downloadEnglishBrochureBtn: "Download Brochure in English (PDF)",
+      chooseBrochureLang: "Brochure Edition:",
+      spanishEdition: "Spanish Edition",
+      englishEdition: "English Edition",
+      s3DirectLink: "Direct S3 Cloud Link",
       downloadedBtn: "Brochure Downloaded ✓",
       whatsappBtn: "Chat with Regional Director",
       doneBtn: "Done & Return to Page",
