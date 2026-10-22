@@ -1,26 +1,280 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #080808;
+  --foreground: #f5f5f5;
+  --card-bg: #111111;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --accent-red: #F91F1F;
+  --accent-orange: #FF5500;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #080808;
+  color: #f5f5f5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080808;
+}
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #404040;
+}
+
+/* Flip hover effect */
+.flip-text-wrap {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.flip-text-inner {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.flip-text-wrap:hover .flip-text-inner {
+  transform: translateY(-50%);
+}
+
+/* Explode radial hover on buttons */
+.explode-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.explode-glow {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.7) 0%, rgba(239, 68, 68, 0) 70%);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  opacity: 0;
+}
+
+.explode-btn:hover .explode-glow {
+  transform: translate(-50%, -50%) scale(2.5);
+  opacity: 1;
+}
+
+/* Spotlight card glow */
+.spotlight-card {
+  position: relative;
+  background: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.spotlight-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.08),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
+.spotlight-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Dark metallic gradient tag */
+.hero-tag-badge {
+  background: radial-gradient(185.4% 106.06% at 66.51% 82.61%, #131111 0%, #262222 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+/* Glassmorphism */
+.glass-pill {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Holatractor Partner Signature Hero Gradients & Studio Lighting - Red + Light combination */
+.stats-card-gradient {
+  aspect-ratio: 1;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, #080808 58%);
+  border-radius: 50%;
+  position: absolute;
+  pointer-events: none;
+}
+
+.stats-card-gradient.hero-gradient {
+  aspect-ratio: 16/9;
+  width: 212%;
+  top: -105%;
+  left: -54%;
+  filter: blur(48px);
+  opacity: 0.85;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.48) 0%, rgba(244, 63, 94, 0.28) 24%, rgba(185, 28, 28, 0.16) 42%, #080808 65%);
+  z-index: 1;
+}
+
+.stats-card-gradient.hero-home {
+  aspect-ratio: 1;
+  width: 140%;
+  top: -240%;
+  left: -20%;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.65) 0%, rgba(239, 68, 68, 0.35) 32%, #080808 62%);
+  filter: blur(36px);
+  opacity: 0.75;
+}
+
+.hero-studio-lighting {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.28) 0%, rgba(239, 68, 68, 0.14) 28%, rgba(255, 255, 255, 0.04) 50%, transparent 75%),
+    radial-gradient(circle 950px at 50% 28%, rgba(255, 255, 255, 0.16) 0%, rgba(220, 38, 38, 0.1) 32%, transparent 70%),
+    radial-gradient(ellipse 100% 70% at 50% 68%, rgba(255, 255, 255, 0.2) 0%, rgba(239, 68, 68, 0.12) 35%, transparent 70%);
+}
+
+/* Realistic Interactive Card Animations */
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-ring-glow {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  50% { transform: scale(1.35); opacity: 0.3; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes scan-beam-line {
+  0% { transform: translateY(-100%); opacity: 0; }
+  25% { opacity: 0.7; }
+  75% { opacity: 0.7; }
+  100% { transform: translateY(280%); opacity: 0; }
+}
+
+@keyframes waveform-bounce {
+  0%, 100% { height: 18%; }
+  50% { height: 88%; }
+}
+
+.animate-radar-sweep {
+  animation: radar-sweep 4s linear infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring-glow 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+.animate-scan-beam {
+  animation: scan-beam-line 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* 3D Floating & Tilt Animations for Dribbble AICM Style Cards */
+@keyframes float-slow-3d {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.2deg) scale(1.02);
+  }
+}
+
+@keyframes float-reverse-3d {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(10px) rotate(-1.5deg) scale(0.99);
+  }
+}
+
+@keyframes float-bob-subtle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float-3d {
+  animation: float-slow-3d 5s ease-in-out infinite;
+}
+
+.animate-float-reverse-3d {
+  animation: float-reverse-3d 6s ease-in-out infinite;
+}
+
+.animate-float-bob {
+  animation: float-bob-subtle 3.5s ease-in-out infinite;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* AI Agent Automation Flow Animations */
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.animate-flow-dash {
+  stroke-dasharray: 8 6;
+  animation: flowDash 1.5s linear infinite;
+}
+
+@keyframes pulseNodeGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+  }
+}
+
+.animate-node-glow {
+  animation: pulseNodeGlow 2.5s ease-in-out infinite;
+}
+
+
